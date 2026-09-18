@@ -1449,6 +1449,67 @@ function caseById(id){
 
 
 /* =====================================================
+   AUTO-GENERATED CASE ID
+   ===================================================== */
+/* There's no backend to hand out IDs, so we derive the next
+   one from whatever Case IDs are currently loaded: find the
+   existing ID with the highest trailing number, keep its
+   prefix/zero-padding, and add 1. If no numbered ID pattern
+   is found (e.g. first case ever), fall back to CASE-0001.
+
+   This is generated from the currently loaded Case Master
+   data, so hitting Refresh right before creating a case
+   reduces the (small, inherent-to-this-architecture) risk
+   of two people getting the same suggested ID at once. The
+   ID is pre-filled but still editable on the Google Form
+   before submitting. */
+
+function generateNextCaseId(){
+
+  let bestPrefix = "";
+  let bestWidth = 4;
+  let maxNum = -1;
+  let found = false;
+
+  cases.forEach(c => {
+
+    const id =
+      get(c,"Case ID");
+
+    const m =
+      /^(.*?)(\d+)\s*$/.exec(id);
+
+    if(!m){
+      return;
+    }
+
+    const prefix = m[1];
+    const numStr = m[2];
+    const num = parseInt(numStr,10);
+
+    if(num > maxNum){
+      maxNum = num;
+      bestPrefix = prefix;
+      bestWidth = numStr.length;
+      found = true;
+    }
+
+  });
+
+  if(!found){
+    return "CASE-0001";
+  }
+
+  const nextNum =
+    String(maxNum + 1)
+      .padStart(bestWidth,"0");
+
+  return bestPrefix + nextNum;
+
+}
+
+
+/* =====================================================
    NEXT HEARING
    ===================================================== */
 
@@ -2643,14 +2704,8 @@ function askAndRememberName(){
 
 function openNewCaseForm(){
 
-  // Open the tab synchronously, as the very first thing we do in
-  // response to the click, so browser popup blockers see it as a
-  // direct result of user activation.
-  const win =
-    window.open(
-      "",
-      "_blank"
-    );
+  const caseId =
+    generateNextCaseId();
 
   let url;
 
@@ -2660,15 +2715,14 @@ function openNewCaseForm(){
       buildPrefilledFormUrl(
         "newCase",
         {
+          caseId:
+            caseId,
+
           status:"Open"
         }
       );
 
   }catch(err){
-
-    if(win){
-      win.close();
-    }
 
     alert(
       err.message ||
@@ -2679,12 +2733,15 @@ function openNewCaseForm(){
 
   }
 
-  if(win){
-    win.location.href = url;
-  }else{
-    // Popup was blocked despite the synchronous open (e.g. the
-    // browser's own extra-strict setting). Fall back to a direct
-    // navigation prompt so the user can still reach the form.
+  const win =
+    window.open(
+      url,
+      "_blank"
+    );
+
+  if(!win){
+    // Popup was blocked. Fall back to a direct navigation
+    // prompt so the user can still reach the form.
     if(confirm(
       "Your browser blocked the popup. Open the New Case form in this tab instead?"
     )){
@@ -2703,23 +2760,11 @@ function openNewHearingForm(
   caseId = ""
 ){
 
-  // Open the tab BEFORE the (blocking) name prompt below, so the
-  // popup is still tied to the original click's user activation.
-  const win =
-    window.open(
-      "",
-      "_blank"
-    );
-
   const loggedBy =
     askAndRememberName();
 
 
   if(!loggedBy){
-
-    if(win){
-      win.close();
-    }
 
     alert(
       "Name is required for a new hearing."
@@ -2750,10 +2795,6 @@ function openNewHearingForm(
 
   }catch(err){
 
-    if(win){
-      win.close();
-    }
-
     alert(
       err.message ||
       "Could not open the Hearing form."
@@ -2764,9 +2805,13 @@ function openNewHearingForm(
   }
 
 
-  if(win){
-    win.location.href = url;
-  }else{
+  const win =
+    window.open(
+      url,
+      "_blank"
+    );
+
+  if(!win){
     if(confirm(
       "Your browser blocked the popup. Open the Hearing form in this tab instead?"
     )){
@@ -2786,23 +2831,11 @@ function openCaseStatusForm(
   newStatus
 ){
 
-  // Open the tab BEFORE the (blocking) name prompt below, so the
-  // popup is still tied to the original click's user activation.
-  const win =
-    window.open(
-      "",
-      "_blank"
-    );
-
   const changedBy =
     askAndRememberName();
 
 
   if(!changedBy){
-
-    if(win){
-      win.close();
-    }
 
     alert(
       "Name is required for a status change."
@@ -2836,10 +2869,6 @@ function openCaseStatusForm(
 
   }catch(err){
 
-    if(win){
-      win.close();
-    }
-
     alert(
       err.message ||
       "Could not open the Case Status form."
@@ -2850,9 +2879,13 @@ function openCaseStatusForm(
   }
 
 
-  if(win){
-    win.location.href = url;
-  }else{
+  const win =
+    window.open(
+      url,
+      "_blank"
+    );
+
+  if(!win){
     if(confirm(
       "Your browser blocked the popup. Open the Case Status form in this tab instead?"
     )){
