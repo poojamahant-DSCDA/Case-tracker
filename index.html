@@ -1,0 +1,2677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Case Tracker — DSCDA</title>
+
+<style>
+:root{
+  --bg:#f5f7fb;--surface:#fff;--surface2:#f8fafc;--ink:#172033;--muted:#667085;
+  --line:#e5e9f0;--brand:#3157d5;--brand2:#2344ad;--brand-soft:#eef2ff;
+  --green:#16845b;--green-soft:#e9f8f1;--amber:#b66a00;--amber-soft:#fff5df;
+  --red:#c53b3b;--red-soft:#fff0f0;--shadow:0 12px 35px rgba(24,38,72,.08);
+  --r:16px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:linear-gradient(180deg,#f8faff 0,#f4f6fa 55%,#eef2f7 100%);
+  color:var(--ink);
+  font:14px Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif
+}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+
+.top{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(248,250,255,.88);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line)
+}
+
+.nav{
+  max-width:1500px;
+  margin:auto;
+  padding:14px 24px;
+  display:flex;
+  align-items:center;
+  gap:18px
+}
+
+.logo{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  font-weight:800;
+  font-size:17px;
+  white-space:nowrap
+}
+
+.logoMark{
+  width:38px;
+  height:38px;
+  border-radius:11px;
+  background:linear-gradient(135deg,var(--brand),#6c82ee);
+  color:white;
+  display:grid;
+  place-items:center;
+  font-weight:900;
+  box-shadow:0 7px 18px #3157d533
+}
+
+.navSearch{
+  flex:1;
+  max-width:620px;
+  position:relative
+}
+
+.navSearch input{
+  width:100%;
+  padding:11px 14px 11px 39px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:white;
+  outline:none
+}
+
+.navSearch input:focus{
+  border-color:#aebcf4;
+  box-shadow:0 0 0 4px var(--brand-soft)
+}
+
+.searchIcon{
+  position:absolute;
+  left:13px;
+  top:10px;
+  color:#8b95a7
+}
+
+.actions{
+  margin-left:auto;
+  display:flex;
+  gap:8px
+}
+
+.btn{
+  border:1px solid var(--line);
+  background:white;
+  color:var(--ink);
+  padding:10px 13px;
+  border-radius:10px;
+  font-weight:700
+}
+
+.btn:hover{
+  border-color:#c7d0e1;
+  background:#fbfcfe
+}
+
+.btn.primary{
+  background:var(--brand);
+  color:white;
+  border-color:var(--brand)
+}
+
+.btn.primary:hover{
+  background:var(--brand2)
+}
+
+.btn.ghost{
+  background:transparent
+}
+
+.statusDot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#c3cad5;
+  display:inline-block
+}
+
+.statusDot.ok{
+  background:#25a36f
+}
+
+.connection{
+  font-size:12px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:7px
+}
+
+.wrap{
+  max-width:1500px;
+  margin:auto;
+  padding:26px 24px 50px
+}
+
+.hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:22px
+}
+
+.eyebrow{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--brand);
+  font-weight:800
+}
+
+.hero h1{
+  font-size:30px;
+  letter-spacing:-.04em;
+  margin:5px 0
+}
+
+.hero p{
+  margin:0;
+  color:var(--muted)
+}
+
+.heroRight{
+  display:flex;
+  align-items:center;
+  gap:10px
+}
+
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-bottom:22px
+}
+
+.kpi{
+  background:var(--surface);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow);
+  border-radius:var(--r);
+  padding:18px
+}
+
+.kpiTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700
+}
+
+.kpiNum{
+  font-size:29px;
+  font-weight:800;
+  letter-spacing:-.04em;
+  margin-top:8px
+}
+
+.kpiNote{
+  font-size:11px;
+  color:var(--muted);
+  margin-top:3px
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:800
+}
+
+.open{
+  background:var(--green-soft);
+  color:var(--green)
+}
+
+.closed{
+  background:#eef1f5;
+  color:#596273
+}
+
+.overdue{
+  background:var(--red-soft);
+  color:var(--red)
+}
+
+.upcoming{
+  background:var(--amber-soft);
+  color:var(--amber)
+}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:18px
+}
+
+.tab{
+  border:0;
+  background:transparent;
+  padding:11px 15px;
+  color:var(--muted);
+  font-weight:800;
+  border-bottom:2px solid transparent
+}
+
+.tab.active{
+  color:var(--brand);
+  border-color:var(--brand)
+}
+
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  overflow:hidden
+}
+
+.panelHead{
+  padding:17px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px
+}
+
+.panelTitle{
+  font-size:15px;
+  font-weight:800
+}
+
+.panelSub{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:3px
+}
+
+.filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+
+.filter{
+  border:1px solid var(--line);
+  background:white;
+  border-radius:9px;
+  padding:8px 10px;
+  color:var(--ink);
+  outline:none
+}
+
+.tableWrap{
+  overflow:auto
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:1000px
+}
+
+th{
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#7b8494;
+  text-align:left;
+  background:#fafbfc;
+  padding:11px 14px;
+  border-bottom:1px solid var(--line)
+}
+
+td{
+  padding:13px 14px;
+  border-bottom:1px solid #edf0f4;
+  vertical-align:top
+}
+
+tr:hover td{
+  background:#fbfcff
+}
+
+.mono{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px
+}
+
+.matter{
+  font-weight:750
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted)
+}
+
+.empty{
+  padding:45px;
+  text-align:center;
+  color:var(--muted)
+}
+
+.error{
+  margin:12px 0;
+  padding:12px 14px;
+  border-radius:10px;
+  background:var(--red-soft);
+  color:var(--red);
+  border:1px solid #ffd3d3
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1.25fr .75fr;
+  gap:16px
+}
+
+.chart{
+  padding:18px
+}
+
+.bars{
+  display:flex;
+  align-items:flex-end;
+  height:190px;
+  gap:12px;
+  padding-top:12px
+}
+
+.barCol{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:7px;
+  height:100%;
+  justify-content:flex-end
+}
+
+.bar{
+  width:min(38px,70%);
+  border-radius:8px 8px 2px 2px;
+  background:linear-gradient(180deg,#6d83e9,#3157d5);
+  min-height:3px
+}
+
+.barLabel{
+  font-size:10px;
+  color:var(--muted)
+}
+
+.barVal{
+  font-size:10px;
+  font-weight:800
+}
+
+.donutWrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:24px;
+  padding:24px
+}
+
+.donut{
+  width:150px;
+  height:150px;
+  border-radius:50%;
+  background:conic-gradient(
+    var(--brand) 0 var(--openPct),
+    #dfe4eb var(--openPct) 100%
+  );
+  display:grid;
+  place-items:center
+}
+
+.donut:after{
+  content:"";
+  width:96px;
+  height:96px;
+  border-radius:50%;
+  background:white
+}
+
+.legend{
+  display:grid;
+  gap:10px
+}
+
+.legend div{
+  display:flex;
+  align-items:center;
+  gap:8px
+}
+
+.legend i{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:var(--brand)
+}
+
+.legend i.gray{
+  background:#dfe4eb
+}
+
+@media(max-width:1000px){
+  .kpis{
+    grid-template-columns:repeat(2,1fr)
+  }
+
+  .grid2{
+    grid-template-columns:1fr
+  }
+
+  .nav{
+    flex-wrap:wrap
+  }
+
+  .navSearch{
+    order:3;
+    flex-basis:100%;
+    max-width:none
+  }
+
+  .hero{
+    align-items:flex-start;
+    flex-direction:column
+  }
+
+  .heroRight{
+    width:100%
+  }
+}
+
+@media(max-width:650px){
+  .wrap{
+    padding:18px 12px
+  }
+
+  .nav{
+    padding:10px 12px
+  }
+
+  .actions .hideMob{
+    display:none
+  }
+
+  .kpis{
+    grid-template-columns:1fr 1fr
+  }
+
+  .hero h1{
+    font-size:25px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header class="top">
+  <nav class="nav">
+
+    <div class="logo">
+      <div class="logoMark">CT</div>
+      <div>Case Tracker</div>
+    </div>
+
+    <div class="navSearch">
+      <span class="searchIcon">⌕</span>
+      <input
+        id="globalSearch"
+        placeholder="Search case ID, matter, department, person..."
+        oninput="renderAll()"
+      >
+    </div>
+
+    <div class="actions">
+
+      <div class="connection">
+        <span id="dot" class="statusDot"></span>
+        <span id="connText">Not loaded</span>
+      </div>
+
+      <button class="btn" onclick="refreshData()">
+        ↻ Refresh
+      </button>
+
+      <button class="btn primary" onclick="openNewCaseForm()">
+        + New Case
+      </button>
+
+      <button class="btn primary" onclick="openNewHearingForm()">
+        + New Hearing
+      </button>
+
+    </div>
+
+  </nav>
+</header>
+
+
+<main class="wrap">
+
+  <section class="hero">
+
+    <div>
+      <div class="eyebrow">Compliance management</div>
+
+      <h1>Case Tracker</h1>
+
+      <p>
+        Live case and hearing view powered directly from your Google Sheet.
+      </p>
+    </div>
+
+    <div class="heroRight">
+      <span class="small" id="lastUpdated">
+        Waiting for data
+      </span>
+    </div>
+
+  </section>
+
+
+  <div id="errorBox"></div>
+
+
+  <section class="kpis">
+
+    <div class="kpi">
+      <div class="kpiTop">
+        <span>Total Cases</span>
+        <span>◫</span>
+      </div>
+
+      <div class="kpiNum" id="kTotal">—</div>
+
+      <div class="kpiNote">
+        Cases in Case Master
+      </div>
+    </div>
+
+
+    <div class="kpi">
+
+      <div class="kpiTop">
+        <span>Open</span>
+        <span class="badge open">OPEN</span>
+      </div>
+
+      <div class="kpiNum" id="kOpen">—</div>
+
+      <div class="kpiNote">
+        Currently marked open
+      </div>
+
+    </div>
+
+
+    <div class="kpi">
+
+      <div class="kpiTop">
+        <span>Closed</span>
+        <span class="badge closed">CLOSED</span>
+      </div>
+
+      <div class="kpiNum" id="kClosed">—</div>
+
+      <div class="kpiNote">
+        Currently marked closed
+      </div>
+
+    </div>
+
+
+    <div class="kpi">
+
+      <div class="kpiTop">
+        <span>Overdue</span>
+        <span class="badge overdue">ACTION</span>
+      </div>
+
+      <div class="kpiNum" id="kOverdue">—</div>
+
+      <div class="kpiNote">
+        Next hearing date has passed
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <div class="tabs">
+
+    <button
+      class="tab active"
+      data-tab="overview"
+      onclick="switchTab('overview')"
+    >
+      Overview
+    </button>
+
+    <button
+      class="tab"
+      data-tab="cases"
+      onclick="switchTab('cases')"
+    >
+      All Cases
+    </button>
+
+    <button
+      class="tab"
+      data-tab="hearings"
+      onclick="switchTab('hearings')"
+    >
+      Hearing Log
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       OVERVIEW
+       ========================= -->
+
+  <section id="tab-overview">
+
+    <div class="grid2">
+
+      <div class="panel">
+
+        <div class="panelHead">
+
+          <div>
+            <div class="panelTitle">
+              Upcoming Hearings
+            </div>
+
+            <div class="panelSub">
+              Next 14 days
+            </div>
+          </div>
+
+          <button
+            class="btn"
+            onclick="switchTab('hearings')"
+          >
+            View all
+          </button>
+
+        </div>
+
+        <div id="upcoming"></div>
+
+      </div>
+
+
+      <div class="panel">
+
+        <div class="panelHead">
+
+          <div>
+            <div class="panelTitle">
+              Case Status
+            </div>
+
+            <div class="panelSub">
+              Current status from Case Master
+            </div>
+          </div>
+
+        </div>
+
+
+        <div class="donutWrap">
+
+          <div
+            id="donut"
+            class="donut"
+            style="--openPct:0%"
+          ></div>
+
+          <div class="legend">
+
+            <div>
+              <i></i>
+              <span>
+                Open <b id="legendOpen">0</b>
+              </span>
+            </div>
+
+            <div>
+              <i class="gray"></i>
+              <span>
+                Closed <b id="legendClosed">0</b>
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="panel" style="margin-top:16px">
+
+      <div class="panelHead">
+
+        <div>
+
+          <div class="panelTitle">
+            Hearings by Month
+          </div>
+
+          <div class="panelSub">
+            Last 6 months from Hearing Log
+          </div>
+
+        </div>
+
+      </div>
+
+      <div id="monthlyChart" class="chart"></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       ALL CASES
+       ========================= -->
+
+  <section id="tab-cases" style="display:none">
+
+    <div class="panel">
+
+      <div class="panelHead">
+
+        <div>
+
+          <div class="panelTitle">
+            All Cases
+          </div>
+
+          <div class="panelSub" id="caseCount">
+            0 records
+          </div>
+
+        </div>
+
+
+        <div class="filters">
+
+          <select
+            id="statusFilter"
+            class="filter"
+            onchange="renderAll()"
+          >
+            <option value="">All Status</option>
+            <option>Open</option>
+            <option>Closed</option>
+          </select>
+
+
+          <select
+            id="deptFilter"
+            class="filter"
+            onchange="renderAll()"
+          >
+            <option value="">All Departments</option>
+          </select>
+
+        </div>
+
+      </div>
+
+
+      <div class="tableWrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Case ID</th>
+              <th>Compliance Matter</th>
+              <th>Department</th>
+              <th>Who is handling</th>
+              <th>Concerned Person</th>
+              <th>Status</th>
+              <th>Next Hearing</th>
+              <th>Action</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="caseRows"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================
+       HEARING LOG
+       ========================= -->
+
+  <section id="tab-hearings" style="display:none">
+
+    <div class="panel">
+
+      <div class="panelHead">
+
+        <div>
+
+          <div class="panelTitle">
+            Hearing Log
+          </div>
+
+          <div class="panelSub" id="hearingCount">
+            0 records
+          </div>
+
+        </div>
+
+        <button
+          class="btn primary"
+          onclick="openNewHearingForm()"
+        >
+          + New Hearing
+        </button>
+
+      </div>
+
+
+      <div class="tableWrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+              <th>Case ID</th>
+              <th>Hearing Date</th>
+              <th>Remarks</th>
+              <th>Next Hearing Date</th>
+              <th>Logged By</th>
+              <th>Timestamp</th>
+            </tr>
+
+          </thead>
+
+          <tbody id="hearingRows"></tbody>
+
+        </table>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<script>
+
+const CONFIG = {
+
+  SHEET_ID:
+    "1T_ZwitEwO7PFIkEDjpGT0I8Y3Cn8yly-pg_9QryQ7Oo",
+
+  TABS: {
+    CASE_MASTER: "Case Master",
+    HEARING_LOG: "Hearing Log",
+    STATUS_LOG: "Case Status Log"
+  },
+
+
+  /* =====================================================
+     GOOGLE FORMS
+     ===================================================== */
+
+  FORMS: {
+
+    /* -------------------------
+       NEW CASE
+       ------------------------- */
+
+    newCase: {
+
+      view:
+        "https://docs.google.com/forms/d/e/1FAIpQLScnLh13utoUYLsXzsNejRgtzq3SYoIzkM8K4iOT4yXdxXkDJg/viewform",
+
+      fields: {
+
+        caseId:
+          "entry.1297618219",
+
+        matter:
+          "entry.1439653724",
+
+        department:
+          "entry.1169830768",
+
+        handler:
+          "entry.1672866444",
+
+        concerned:
+          "entry.1947776307",
+
+        status:
+          "entry.1580421011"
+
+      }
+
+    },
+
+
+    /* -------------------------
+       NEW HEARING
+       ------------------------- */
+
+    hearing: {
+
+      view:
+        "https://docs.google.com/forms/d/e/1FAIpQLSeubPt47Wv0uK1iHdR3PO7prukturOq1LBOAVJEQJivBWl1rw/viewform",
+
+      fields: {
+
+        caseId:
+          "entry.462258690",
+
+        hearingDate:
+          "entry.2085564260",
+
+        remarks:
+          "entry.1372323160",
+
+        nextHearingDate:
+          "entry.2115427239",
+
+        loggedBy:
+          "entry.1861298871"
+
+      }
+
+    },
+
+
+    /* -------------------------
+       CASE STATUS
+       ------------------------- */
+
+    status: {
+
+      view:
+        "https://docs.google.com/forms/d/e/1FAIpQLSckpijDBK1Vb35Ly5JAv7sGlb3nV4UFeHwT6dwOemFZ7sWQoA/viewform",
+
+      fields: {
+
+        caseId:
+          "entry.1202865050",
+
+        status:
+          "entry.1477213311",
+
+        changedBy:
+          "entry.25876568"
+
+      }
+
+    }
+
+  },
+
+
+  LOGGED_BY_STORAGE:
+    "caseTrackerLoggedBy"
+
+};
+
+
+let cases = [];
+let hearings = [];
+let statusLog = [];
+let loadedAt = null;
+
+
+/* =====================================================
+   GOOGLE SHEET GVIZ
+   ===================================================== */
+
+function csvUrl(tab){
+
+  return (
+    "https://docs.google.com/spreadsheets/d/" +
+    CONFIG.SHEET_ID +
+    "/gviz/tq?tqx=out:csv&sheet=" +
+    encodeURIComponent(tab) +
+    "&_=" +
+    Date.now()
+  );
+
+}
+
+
+/* =====================================================
+   CSV PARSER
+   ===================================================== */
+
+function parseCSV(text){
+
+  const rows = [];
+
+  let row = [];
+  let cell = "";
+  let quoted = false;
+
+  for(let i=0;i<text.length;i++){
+
+    const c = text[i];
+    const n = text[i+1];
+
+    if(c === '"'){
+
+      if(quoted && n === '"'){
+        cell += '"';
+        i++;
+      }else{
+        quoted = !quoted;
+      }
+
+    }
+
+    else if(c === ',' && !quoted){
+
+      row.push(cell);
+      cell = "";
+
+    }
+
+    else if(
+      (c === '\n' || c === '\r') &&
+      !quoted
+    ){
+
+      if(c === '\r' && n === '\n'){
+        i++;
+      }
+
+      row.push(cell);
+
+      if(
+        row.some(
+          x => x.trim() !== ""
+        )
+      ){
+        rows.push(row);
+      }
+
+      row = [];
+      cell = "";
+
+    }
+
+    else{
+
+      cell += c;
+
+    }
+
+  }
+
+
+  if(cell !== "" || row.length){
+
+    row.push(cell);
+
+    if(
+      row.some(
+        x => x.trim() !== ""
+      )
+    ){
+      rows.push(row);
+    }
+
+  }
+
+  return rows;
+
+}
+
+
+/* =====================================================
+   NORMALIZATION
+   ===================================================== */
+
+function norm(s){
+
+  return String(s ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ");
+
+}
+
+
+function headerMap(header){
+
+  const m = {};
+
+  header.forEach(
+    (h,i) => {
+      m[norm(h)] = i;
+    }
+  );
+
+  return m;
+
+}
+
+
+function rowsToObjects(rows){
+
+  if(!rows.length){
+    return [];
+  }
+
+  const m =
+    headerMap(rows[0]);
+
+  return rows
+    .slice(1)
+    .map(r =>
+      Object.fromEntries(
+        Object.entries(m)
+          .map(
+            ([k,i]) =>
+              [
+                k,
+                (r[i] ?? "").trim()
+              ]
+          )
+      )
+    );
+
+}
+
+
+function get(o,name){
+
+  return o[norm(name)] ?? "";
+
+}
+
+
+/* =====================================================
+   DATE FUNCTIONS
+   ===================================================== */
+
+function parseDate(v){
+
+  if(!v){
+    return null;
+  }
+
+  const s =
+    String(v).trim();
+
+  let d =
+    new Date(s);
+
+  if(!isNaN(d)){
+    return d;
+  }
+
+  const m =
+    s.match(
+      /^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/
+    );
+
+  if(m){
+
+    let y = +m[3];
+
+    if(y < 100){
+      y += 2000;
+    }
+
+    d =
+      new Date(
+        y,
+        +m[2]-1,
+        +m[1]
+      );
+
+    return isNaN(d)
+      ? null
+      : d;
+
+  }
+
+  return null;
+
+}
+
+
+function dateText(v){
+
+  const d =
+    parseDate(v);
+
+  return d
+    ? d.toLocaleDateString(
+        "en-IN",
+        {
+          day:"2-digit",
+          month:"short",
+          year:"numeric"
+        }
+      )
+    : (v || "—");
+
+}
+
+
+/* =====================================================
+   HTML ESCAPE
+   ===================================================== */
+
+function esc(s){
+
+  return String(s ?? "")
+    .replace(
+      /[&<>"']/g,
+      c => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#39;"
+      }[c])
+    );
+
+}
+
+
+/* =====================================================
+   CASE FUNCTIONS
+   ===================================================== */
+
+function isOpen(c){
+
+  return (
+    norm(
+      get(c,"Status")
+    ) === "open"
+  );
+
+}
+
+
+function caseById(id){
+
+  return cases.find(
+    c =>
+      norm(
+        get(c,"Case ID")
+      ) === norm(id)
+  );
+
+}
+
+
+/* =====================================================
+   NEXT HEARING
+   ===================================================== */
+
+function nextHearingMap(){
+
+  const map = {};
+
+  hearings.forEach(h => {
+
+    const id =
+      get(h,"Case ID");
+
+    const d =
+      parseDate(
+        get(
+          h,
+          "Next Hearing Date"
+        )
+      );
+
+    if(!id || !d){
+      return;
+    }
+
+    if(
+      !map[norm(id)] ||
+      d > map[norm(id)].date
+    ){
+
+      map[norm(id)] = {
+        date:d,
+        raw:h
+      };
+
+    }
+
+  });
+
+  return map;
+
+}
+
+
+/* =====================================================
+   LOAD GOOGLE SHEET TAB
+   ===================================================== */
+
+async function loadTab(tab){
+
+  const res =
+    await fetch(
+      csvUrl(tab),
+      {
+        mode:"cors",
+        cache:"no-store"
+      }
+    );
+
+  if(!res.ok){
+
+    throw new Error(
+      tab +
+      " could not be read. Make sure the Google Sheet/tab is published or otherwise readable."
+    );
+
+  }
+
+  const txt =
+    await res.text();
+
+  if(
+    !txt ||
+    txt.trim().startsWith("<")
+  ){
+
+    throw new Error(
+      tab +
+      " did not return CSV. Check Google Sheet publishing/sharing."
+    );
+
+  }
+
+  return rowsToObjects(
+    parseCSV(txt)
+  );
+
+}
+
+
+/* =====================================================
+   REFRESH DATA
+   ===================================================== */
+
+async function refreshData(){
+
+  setConn(
+    "Loading...",
+    false
+  );
+
+  try{
+
+    const [c,h] =
+      await Promise.all([
+
+        loadTab(
+          CONFIG.TABS.CASE_MASTER
+        ),
+
+        loadTab(
+          CONFIG.TABS.HEARING_LOG
+        )
+
+      ]);
+
+
+    cases = c;
+    hearings = h;
+
+
+    try{
+
+      statusLog =
+        await loadTab(
+          CONFIG.TABS.STATUS_LOG
+        );
+
+    }catch(_){
+
+      statusLog = [];
+
+    }
+
+
+    loadedAt =
+      new Date();
+
+
+    setConn(
+      "Live",
+      true
+    );
+
+
+    document
+      .getElementById("lastUpdated")
+      .textContent =
+        "Updated " +
+        loadedAt.toLocaleTimeString(
+          "en-IN",
+          {
+            hour:"2-digit",
+            minute:"2-digit"
+          }
+        );
+
+
+    document
+      .getElementById("errorBox")
+      .innerHTML = "";
+
+
+    populateFilters();
+    renderAll();
+
+  }catch(e){
+
+    setConn(
+      "Read error",
+      false
+    );
+
+
+    document
+      .getElementById("errorBox")
+      .innerHTML =
+        '<div class="error">' +
+        esc(e.message) +
+        '</div>';
+
+  }
+
+}
+
+
+/* =====================================================
+   CONNECTION
+   ===================================================== */
+
+function setConn(t,ok){
+
+  document
+    .getElementById("connText")
+    .textContent = t;
+
+  document
+    .getElementById("dot")
+    .className =
+      "statusDot" +
+      (ok ? " ok" : "");
+
+}
+
+
+/* =====================================================
+   DEPARTMENT FILTER
+   ===================================================== */
+
+function populateFilters(){
+
+  const sel =
+    document.getElementById(
+      "deptFilter"
+    );
+
+  const old =
+    sel.value;
+
+
+  const vals =
+    [
+      ...new Set(
+        cases.flatMap(
+          c =>
+            get(
+              c,
+              "Departments"
+            )
+            .split(/[,;|]/)
+            .map(
+              x => x.trim()
+            )
+            .filter(Boolean)
+        )
+      )
+    ].sort();
+
+
+  sel.innerHTML =
+    '<option value="">All Departments</option>' +
+    vals
+      .map(
+        v =>
+          '<option>' +
+          esc(v) +
+          '</option>'
+      )
+      .join("");
+
+
+  sel.value =
+    vals.includes(old)
+      ? old
+      : "";
+
+}
+
+
+/* =====================================================
+   FILTER MATCHING
+   ===================================================== */
+
+function matches(c){
+
+  const q =
+    norm(
+      document
+        .getElementById(
+          "globalSearch"
+        )
+        .value
+    );
+
+  const sf =
+    document
+      .getElementById(
+        "statusFilter"
+      )
+      .value;
+
+  const df =
+    document
+      .getElementById(
+        "deptFilter"
+      )
+      .value;
+
+
+  const hay = [
+
+    get(c,"Case ID"),
+
+    get(c,"Compliance Matter"),
+
+    get(c,"Departments"),
+
+    get(
+      c,
+      "Who is handling Matter"
+    ),
+
+    get(
+      c,
+      "Concerned Person at Dept"
+    ),
+
+    get(c,"Status")
+
+  ].join(" ");
+
+
+  return (
+
+    (!q ||
+      norm(hay).includes(q)
+    )
+
+    &&
+
+    (!sf ||
+      get(c,"Status") === sf
+    )
+
+    &&
+
+    (!df ||
+      get(c,"Departments")
+        .split(/[,;|]/)
+        .map(x => x.trim())
+        .includes(df)
+    )
+
+  );
+
+}
+
+
+/* =====================================================
+   RENDER EVERYTHING
+   ===================================================== */
+
+function renderAll(){
+
+  renderKPIs();
+  renderCases();
+  renderHearings();
+  renderUpcoming();
+  renderMonthly();
+
+}
+
+
+/* =====================================================
+   KPI
+   ===================================================== */
+
+function renderKPIs(){
+
+  const open =
+    cases.filter(isOpen).length;
+
+  const closed =
+    cases.length - open;
+
+
+  const now =
+    new Date();
+
+  now.setHours(
+    0,0,0,0
+  );
+
+
+  const nh =
+    nextHearingMap();
+
+  let overdue = 0;
+
+
+  Object.values(nh)
+    .forEach(x => {
+
+      if(x.date < now){
+
+        const c =
+          caseById(
+            x.raw["case id"] ||
+            get(
+              x.raw,
+              "Case ID"
+            )
+          );
+
+        if(
+          !c ||
+          isOpen(c)
+        ){
+
+          overdue++;
+
+        }
+
+      }
+
+    });
+
+
+  kTotal.textContent =
+    cases.length;
+
+  kOpen.textContent =
+    open;
+
+  kClosed.textContent =
+    closed;
+
+  kOverdue.textContent =
+    overdue;
+
+  legendOpen.textContent =
+    open;
+
+  legendClosed.textContent =
+    closed;
+
+
+  const pct =
+    cases.length
+      ? Math.round(
+          open /
+          cases.length *
+          100
+        )
+      : 0;
+
+
+  donut.style.setProperty(
+    "--openPct",
+    pct + "%"
+  );
+
+}
+
+
+/* =====================================================
+   CASE TABLE
+   ===================================================== */
+
+function renderCases(){
+
+  const nh =
+    nextHearingMap();
+
+  const arr =
+    cases.filter(matches);
+
+
+  caseCount.textContent =
+    arr.length +
+    " record" +
+    (
+      arr.length === 1
+        ? ""
+        : "s"
+    );
+
+
+  caseRows.innerHTML =
+    arr.length
+
+      ?
+
+      arr.map(c => {
+
+        const id =
+          get(
+            c,
+            "Case ID"
+          );
+
+        const x =
+          nh[norm(id)];
+
+        const d =
+          x?.date;
+
+
+        const open =
+          isOpen(c);
+
+
+        const nextStatus =
+          open
+            ? "Closed"
+            : "Open";
+
+
+        return (
+
+          '<tr>' +
+
+          '<td>' +
+            '<span class="mono">' +
+              esc(id) +
+            '</span>' +
+          '</td>' +
+
+          '<td>' +
+            '<div class="matter">' +
+              esc(
+                get(
+                  c,
+                  "Compliance Matter"
+                )
+              ) +
+            '</div>' +
+          '</td>' +
+
+          '<td>' +
+            esc(
+              get(
+                c,
+                "Departments"
+              ) || "—"
+            ) +
+          '</td>' +
+
+          '<td>' +
+            esc(
+              get(
+                c,
+                "Who is handling Matter"
+              ) || "—"
+            ) +
+          '</td>' +
+
+          '<td>' +
+            esc(
+              get(
+                c,
+                "Concerned Person at Dept"
+              ) || "—"
+            ) +
+          '</td>' +
+
+          '<td>' +
+
+            '<span class="badge ' +
+              (
+                open
+                  ? "open"
+                  : "closed"
+              ) +
+            '">' +
+
+              esc(
+                get(
+                  c,
+                  "Status"
+                ) || "—"
+              ) +
+
+            '</span>' +
+
+          '</td>' +
+
+          '<td>' +
+
+            (
+              d
+                ? dateText(d)
+                : '<span class="small">Not scheduled</span>'
+            ) +
+
+          '</td>' +
+
+          '<td>' +
+
+            '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+
+              '<button ' +
+                'class="btn" ' +
+                'style="padding:7px 9px;font-size:11px" ' +
+                'onclick="openNewHearingForm(' +
+                  JSON.stringify(id) +
+                ')">' +
+                '+ Hearing' +
+              '</button>' +
+
+              '<button ' +
+                'class="btn" ' +
+                'style="padding:7px 9px;font-size:11px" ' +
+                'onclick="openCaseStatusForm(' +
+                  JSON.stringify(id) +
+                  ',' +
+                  JSON.stringify(nextStatus) +
+                ')">' +
+
+                (
+                  open
+                    ? "Close"
+                    : "Reopen"
+                ) +
+
+              '</button>' +
+
+            '</div>' +
+
+          '</td>' +
+
+          '</tr>';
+
+      }).join("")
+
+      :
+
+      '<tr>' +
+        '<td colspan="8" class="empty">' +
+          'No cases match the current filters.' +
+        '</td>' +
+      '</tr>';
+
+}
+
+
+/* =====================================================
+   HEARING TABLE
+   ===================================================== */
+
+function renderHearings(){
+
+  const q =
+    norm(
+      document
+        .getElementById(
+          "globalSearch"
+        )
+        .value
+    );
+
+
+  const arr =
+    hearings
+
+      .filter(
+        h =>
+          !q ||
+          norm(
+            Object.values(h)
+              .join(" ")
+          ).includes(q)
+      )
+
+      .sort(
+        (a,b) =>
+          (
+            parseDate(
+              get(
+                b,
+                "Hearing Date"
+              )
+            ) || 0
+          )
+
+          -
+
+          (
+            parseDate(
+              get(
+                a,
+                "Hearing Date"
+              )
+            ) || 0
+          )
+      );
+
+
+  hearingCount.textContent =
+    arr.length +
+    " record" +
+    (
+      arr.length === 1
+        ? ""
+        : "s"
+    );
+
+
+  hearingRows.innerHTML =
+    arr.length
+
+      ?
+
+      arr.map(
+        h =>
+
+          '<tr>' +
+
+          '<td class="mono">' +
+            esc(
+              get(
+                h,
+                "Case ID"
+              )
+            ) +
+          '</td>' +
+
+          '<td>' +
+            dateText(
+              get(
+                h,
+                "Hearing Date"
+              )
+            ) +
+          '</td>' +
+
+          '<td>' +
+            esc(
+              get(
+                h,
+                "Remarks"
+              ) || "—"
+            ) +
+          '</td>' +
+
+          '<td>' +
+            dateText(
+              get(
+                h,
+                "Next Hearing Date"
+              )
+            ) +
+          '</td>' +
+
+          '<td>' +
+            esc(
+              get(
+                h,
+                "Logged By"
+              ) || "—"
+            ) +
+          '</td>' +
+
+          '<td class="small">' +
+            esc(
+              get(
+                h,
+                "Timestamp"
+              ) || "—"
+            ) +
+          '</td>' +
+
+          '</tr>'
+      ).join("")
+
+      :
+
+      '<tr>' +
+        '<td colspan="6" class="empty">' +
+          'No hearing records found.' +
+        '</td>' +
+      '</tr>';
+
+}
+
+
+/* =====================================================
+   UPCOMING HEARINGS
+   ===================================================== */
+
+function renderUpcoming(){
+
+  const now =
+    new Date();
+
+  now.setHours(
+    0,0,0,0
+  );
+
+
+  const end =
+    new Date(now);
+
+  end.setDate(
+    end.getDate() + 14
+  );
+
+
+  const nh =
+    nextHearingMap();
+
+
+  const items =
+    Object.values(nh)
+
+      .filter(
+        x =>
+          x.date >= now &&
+          x.date <= end
+      )
+
+      .sort(
+        (a,b) =>
+          a.date - b.date
+      )
+
+      .slice(0,8);
+
+
+  upcoming.innerHTML =
+
+    items.length
+
+      ?
+
+      '<div>' +
+
+      items.map(
+        x => {
+
+          const c =
+            caseById(
+              get(
+                x.raw,
+                "Case ID"
+              )
+            );
+
+
+          return (
+
+            '<div style="' +
+              'padding:13px 18px;' +
+              'border-bottom:1px solid #edf0f4;' +
+              'display:flex;' +
+              'justify-content:space-between;' +
+              'gap:15px">' +
+
+              '<div>' +
+
+                '<div class="mono">' +
+                  esc(
+                    get(
+                      x.raw,
+                      "Case ID"
+                    )
+                  ) +
+                '</div>' +
+
+                '<div class="matter" style="margin-top:3px">' +
+                  esc(
+                    c
+                      ? get(
+                          c,
+                          "Compliance Matter"
+                        )
+                      : ""
+                  ) +
+                '</div>' +
+
+                '<div class="small" style="margin-top:3px">' +
+                  esc(
+                    c
+                      ? get(
+                          c,
+                          "Concerned Person at Dept"
+                        )
+                      : ""
+                  ) +
+                '</div>' +
+
+              '</div>' +
+
+              '<div style="text-align:right">' +
+
+                '<span class="badge upcoming">' +
+                  dateText(x.date) +
+                '</span>' +
+
+              '</div>' +
+
+            '</div>'
+
+          );
+
+        }
+      ).join("") +
+
+      '</div>'
+
+      :
+
+      '<div class="empty">' +
+        'No upcoming hearings in the next 14 days.' +
+      '</div>';
+
+}
+
+
+/* =====================================================
+   MONTHLY CHART
+   ===================================================== */
+
+function renderMonthly(){
+
+  const now =
+    new Date();
+
+  const months = [];
+
+
+  for(
+    let i=5;
+    i>=0;
+    i--
+  ){
+
+    const d =
+      new Date(
+        now.getFullYear(),
+        now.getMonth() - i,
+        1
+      );
+
+
+    months.push({
+
+      key:
+        d.getFullYear() +
+        "-" +
+        d.getMonth(),
+
+      label:
+        d.toLocaleDateString(
+          "en-IN",
+          {
+            month:"short"
+          }
+        ),
+
+      count:0
+
+    });
+
+  }
+
+
+  hearings.forEach(h => {
+
+    const d =
+      parseDate(
+        get(
+          h,
+          "Hearing Date"
+        )
+      );
+
+    if(!d){
+      return;
+    }
+
+
+    const x =
+      months.find(
+        m =>
+          m.key ===
+          d.getFullYear() +
+          "-" +
+          d.getMonth()
+      );
+
+
+    if(x){
+      x.count++;
+    }
+
+  });
+
+
+  const max =
+    Math.max(
+      1,
+      ...months.map(
+        m => m.count
+      )
+    );
+
+
+  monthlyChart.innerHTML =
+
+    '<div class="bars">' +
+
+    months.map(
+      m =>
+
+        '<div class="barCol">' +
+
+          '<div class="barVal">' +
+            m.count +
+          '</div>' +
+
+          '<div class="bar" style="height:' +
+            Math.max(
+              3,
+              m.count /
+              max *
+              145
+            ) +
+            'px">' +
+          '</div>' +
+
+          '<div class="barLabel">' +
+            m.label +
+          '</div>' +
+
+        '</div>'
+    ).join("") +
+
+    '</div>';
+
+}
+
+
+/* =====================================================
+   TAB SWITCHING
+   ===================================================== */
+
+function switchTab(tab){
+
+  document
+    .querySelectorAll(".tab")
+    .forEach(
+      b =>
+        b.classList.toggle(
+          "active",
+          b.dataset.tab === tab
+        )
+    );
+
+
+  [
+    "overview",
+    "cases",
+    "hearings"
+  ].forEach(x => {
+
+    document
+      .getElementById(
+        "tab-" + x
+      )
+      .style.display =
+        x === tab
+          ? ""
+          : "none";
+
+  });
+
+
+  if(tab === "cases"){
+    renderCases();
+  }
+
+  if(tab === "hearings"){
+    renderHearings();
+  }
+
+}
+
+
+/* =====================================================
+   GOOGLE FORM URL BUILDER
+   ===================================================== */
+
+function buildPrefilledFormUrl(
+  formName,
+  values = {}
+){
+
+  const form =
+    CONFIG.FORMS[formName];
+
+
+  if(
+    !form ||
+    !form.view
+  ){
+
+    throw new Error(
+      "Google Form is not configured."
+    );
+
+  }
+
+
+  const params =
+    new URLSearchParams();
+
+
+  Object.entries(values)
+    .forEach(
+      ([key,value]) => {
+
+        const entryId =
+          form.fields[key];
+
+
+        if(
+
+          entryId &&
+
+          value !== undefined &&
+
+          value !== null &&
+
+          String(value).trim() !== ""
+
+        ){
+
+          params.set(
+            entryId,
+            String(value)
+          );
+
+        }
+
+      }
+    );
+
+
+  return (
+    form.view +
+    "?usp=pp_url&" +
+    params.toString()
+  );
+
+}
+
+
+/* =====================================================
+   LOGGED BY
+   ===================================================== */
+
+function getLoggedBy(){
+
+  return (
+    localStorage.getItem(
+      CONFIG.LOGGED_BY_STORAGE
+    ) || ""
+  );
+
+}
+
+
+function askAndRememberName(){
+
+  let name =
+    getLoggedBy();
+
+
+  if(!name){
+
+    name =
+      prompt(
+        "Enter your name. This will be remembered in this browser:"
+      );
+
+
+    if(
+      name &&
+      name.trim()
+    ){
+
+      name =
+        name.trim();
+
+
+      localStorage.setItem(
+        CONFIG.LOGGED_BY_STORAGE,
+        name
+      );
+
+    }else{
+
+      name = "";
+
+    }
+
+  }
+
+
+  return name;
+
+}
+
+
+/* =====================================================
+   NEW CASE
+   ===================================================== */
+
+function openNewCaseForm(){
+
+  const url =
+    buildPrefilledFormUrl(
+      "newCase",
+      {
+        status:"Open"
+      }
+    );
+
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+/* =====================================================
+   NEW HEARING
+   ===================================================== */
+
+function openNewHearingForm(
+  caseId = ""
+){
+
+  const loggedBy =
+    askAndRememberName();
+
+
+  if(!loggedBy){
+
+    alert(
+      "Name is required for a new hearing."
+    );
+
+    return;
+
+  }
+
+
+  const url =
+    buildPrefilledFormUrl(
+      "hearing",
+      {
+
+        caseId:
+          caseId,
+
+        loggedBy:
+          loggedBy
+
+      }
+    );
+
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+/* =====================================================
+   CASE STATUS
+   ===================================================== */
+
+function openCaseStatusForm(
+  caseId,
+  newStatus
+){
+
+  const changedBy =
+    askAndRememberName();
+
+
+  if(!changedBy){
+
+    alert(
+      "Name is required for a status change."
+    );
+
+    return;
+
+  }
+
+
+  const url =
+    buildPrefilledFormUrl(
+      "status",
+      {
+
+        caseId:
+          caseId,
+
+        status:
+          newStatus,
+
+        changedBy:
+          changedBy
+
+      }
+    );
+
+
+  window.open(
+    url,
+    "_blank"
+  );
+
+}
+
+
+/* =====================================================
+   START
+   ===================================================== */
+
+refreshData();
+
+</script>
+
+</body>
+</html>
