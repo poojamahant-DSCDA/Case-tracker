@@ -1328,11 +1328,108 @@ function esc(s){
    CASE FUNCTIONS
    ===================================================== */
 
+/* ---------------------------------------------------
+   Case Status Log can't overwrite the "Status" cell in
+   Case Master (no Apps Script / Sheets API allowed), so
+   we derive the CURRENT status client-side instead:
+   the most recent "Case Status Log" row for a Case ID
+   wins; if that case has no log entries yet, we fall
+   back to the Status value Case Master was seeded with
+   at creation time (from the New Case form).
+   --------------------------------------------------- */
+
+function statusLogEntriesFor(id){
+
+  return statusLog.filter(
+    s =>
+      norm(
+        get(s,"Case ID")
+      ) === norm(id)
+  );
+
+}
+
+function latestStatusLogEntry(id){
+
+  const entries =
+    statusLogEntriesFor(id);
+
+  if(!entries.length){
+    return null;
+  }
+
+  const withDates =
+    entries.map(
+      (e,i) => ({
+        e,
+        i,
+        t:
+          parseDate(
+            get(e,"Timestamp")
+          )
+      })
+    );
+
+  const allDated =
+    withDates.every(
+      x => x.t
+    );
+
+  if(allDated){
+
+    withDates.sort(
+      (a,b) => a.t - b.t
+    );
+
+  }
+  // If timestamps are missing/unparseable, keep sheet row
+  // order — Google Forms always appends new responses at
+  // the bottom, so the last row is still the most recent.
+
+  return withDates[
+    withDates.length - 1
+  ].e;
+
+}
+
+function statusLogValue(e){
+
+  return (
+    get(e,"New Status") ||
+    get(e,"Status") ||
+    ""
+  );
+
+}
+
+function effectiveStatus(c){
+
+  const id =
+    get(c,"Case ID");
+
+  const latest =
+    latestStatusLogEntry(id);
+
+  if(latest){
+
+    const s =
+      statusLogValue(latest);
+
+    if(s){
+      return s;
+    }
+
+  }
+
+  return get(c,"Status");
+
+}
+
 function isOpen(c){
 
   return (
     norm(
-      get(c,"Status")
+      effectiveStatus(c)
     ) === "open"
   );
 
@@ -1658,7 +1755,7 @@ function matches(c){
       "Concerned Person at Dept"
     ),
 
-    get(c,"Status")
+    effectiveStatus(c)
 
   ].join(" ");
 
@@ -1672,7 +1769,7 @@ function matches(c){
     &&
 
     (!sf ||
-      get(c,"Status") === sf
+      effectiveStatus(c) === sf
     )
 
     &&
@@ -1908,10 +2005,7 @@ function renderCases(){
             '">' +
 
               esc(
-                get(
-                  c,
-                  "Status"
-                ) || "—"
+                effectiveStatus(c) || "—"
               ) +
 
             '</span>' +
@@ -1935,20 +2029,15 @@ function renderCases(){
               '<button ' +
                 'class="btn" ' +
                 'style="padding:7px 9px;font-size:11px" ' +
-                'onclick="openNewHearingForm(' +
-                  JSON.stringify(id) +
-                ')">' +
+                'data-hearing-btn="' + esc(id) + '">' +
                 '+ Hearing' +
               '</button>' +
 
               '<button ' +
                 'class="btn" ' +
                 'style="padding:7px 9px;font-size:11px" ' +
-                'onclick="openCaseStatusForm(' +
-                  JSON.stringify(id) +
-                  ',' +
-                  JSON.stringify(nextStatus) +
-                ')">' +
+                'data-status-btn="' + esc(id) + '" ' +
+                'data-status-next="' + esc(nextStatus) + '">' +
 
                 (
                   open
@@ -1962,7 +2051,9 @@ function renderCases(){
 
           '</td>' +
 
-          '</tr>';
+          '</tr>'
+
+        );
 
       }).join("")
 
@@ -2552,19 +2643,54 @@ function askAndRememberName(){
 
 function openNewCaseForm(){
 
-  const url =
-    buildPrefilledFormUrl(
-      "newCase",
-      {
-        status:"Open"
-      }
+  // Open the tab synchronously, as the very first thing we do in
+  // response to the click, so browser popup blockers see it as a
+  // direct result of user activation.
+  const win =
+    window.open(
+      "",
+      "_blank"
     );
 
+  let url;
 
-  window.open(
-    url,
-    "_blank"
-  );
+  try{
+
+    url =
+      buildPrefilledFormUrl(
+        "newCase",
+        {
+          status:"Open"
+        }
+      );
+
+  }catch(err){
+
+    if(win){
+      win.close();
+    }
+
+    alert(
+      err.message ||
+      "Could not open the New Case form."
+    );
+
+    return;
+
+  }
+
+  if(win){
+    win.location.href = url;
+  }else{
+    // Popup was blocked despite the synchronous open (e.g. the
+    // browser's own extra-strict setting). Fall back to a direct
+    // navigation prompt so the user can still reach the form.
+    if(confirm(
+      "Your browser blocked the popup. Open the New Case form in this tab instead?"
+    )){
+      window.location.href = url;
+    }
+  }
 
 }
 
@@ -2577,11 +2703,23 @@ function openNewHearingForm(
   caseId = ""
 ){
 
+  // Open the tab BEFORE the (blocking) name prompt below, so the
+  // popup is still tied to the original click's user activation.
+  const win =
+    window.open(
+      "",
+      "_blank"
+    );
+
   const loggedBy =
     askAndRememberName();
 
 
   if(!loggedBy){
+
+    if(win){
+      win.close();
+    }
 
     alert(
       "Name is required for a new hearing."
@@ -2592,25 +2730,49 @@ function openNewHearingForm(
   }
 
 
-  const url =
-    buildPrefilledFormUrl(
-      "hearing",
-      {
+  let url;
 
-        caseId:
-          caseId,
+  try{
 
-        loggedBy:
-          loggedBy
+    url =
+      buildPrefilledFormUrl(
+        "hearing",
+        {
 
-      }
+          caseId:
+            caseId,
+
+          loggedBy:
+            loggedBy
+
+        }
+      );
+
+  }catch(err){
+
+    if(win){
+      win.close();
+    }
+
+    alert(
+      err.message ||
+      "Could not open the Hearing form."
     );
 
+    return;
 
-  window.open(
-    url,
-    "_blank"
-  );
+  }
+
+
+  if(win){
+    win.location.href = url;
+  }else{
+    if(confirm(
+      "Your browser blocked the popup. Open the Hearing form in this tab instead?"
+    )){
+      window.location.href = url;
+    }
+  }
 
 }
 
@@ -2624,11 +2786,23 @@ function openCaseStatusForm(
   newStatus
 ){
 
+  // Open the tab BEFORE the (blocking) name prompt below, so the
+  // popup is still tied to the original click's user activation.
+  const win =
+    window.open(
+      "",
+      "_blank"
+    );
+
   const changedBy =
     askAndRememberName();
 
 
   if(!changedBy){
+
+    if(win){
+      win.close();
+    }
 
     alert(
       "Name is required for a status change."
@@ -2639,30 +2813,84 @@ function openCaseStatusForm(
   }
 
 
-  const url =
-    buildPrefilledFormUrl(
-      "status",
-      {
+  let url;
 
-        caseId:
-          caseId,
+  try{
 
-        status:
-          newStatus,
+    url =
+      buildPrefilledFormUrl(
+        "status",
+        {
 
-        changedBy:
-          changedBy
+          caseId:
+            caseId,
 
-      }
+          status:
+            newStatus,
+
+          changedBy:
+            changedBy
+
+        }
+      );
+
+  }catch(err){
+
+    if(win){
+      win.close();
+    }
+
+    alert(
+      err.message ||
+      "Could not open the Case Status form."
     );
 
+    return;
 
-  window.open(
-    url,
-    "_blank"
-  );
+  }
+
+
+  if(win){
+    win.location.href = url;
+  }else{
+    if(confirm(
+      "Your browser blocked the popup. Open the Case Status form in this tab instead?"
+    )){
+      window.location.href = url;
+    }
+  }
 
 }
+
+
+/* =====================================================
+   DELEGATED CLICK HANDLERS (per-row Hearing / Status buttons)
+   ===================================================== */
+
+document.addEventListener("click", function(e){
+
+  const hearingBtn =
+    e.target.closest("[data-hearing-btn]");
+
+  if(hearingBtn){
+    openNewHearingForm(
+      hearingBtn.dataset.hearingBtn
+    );
+    return;
+  }
+
+  const statusBtn =
+    e.target.closest("[data-status-btn]");
+
+  if(statusBtn){
+    openCaseStatusForm(
+      statusBtn.dataset.statusBtn,
+      statusBtn.dataset.statusNext
+    );
+    return;
+  }
+
+});
 
 
 /* =====================================================
